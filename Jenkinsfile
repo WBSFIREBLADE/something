@@ -16,12 +16,10 @@ pipeline {
         stage('Check Environment') {
             steps {
                 sh '''
-                    echo "Checking Python..."
-                    python3.12 --version
-
                     echo "Checking Docker..."
                     docker --version
-                    docker info
+                    docker compose version
+                    docker info >/dev/null
                 '''
             }
         }
@@ -35,15 +33,9 @@ pipeline {
         stage('Code Quality') {
             steps {
                 sh '''
-                    python3.12 -m venv --clear .venv
-
-                    .venv/bin/python -m pip install --upgrade pip
-
-                    .venv/bin/python -m pip install -r requirements.txt ruff bandit
-
-                    .venv/bin/ruff check .
-
-                    .venv/bin/bandit -r . -x ./.venv,./tests
+                    docker compose -p something-ci -f docker-compose.ci.yml build app
+                    docker compose -p something-ci -f docker-compose.ci.yml run --rm app \
+                        sh -c 'ruff check . && bandit -r . -x ./tests'
                 '''
             }
         }
@@ -51,17 +43,9 @@ pipeline {
         stage('Django Validation') {
             steps {
                 sh '''
-                    export SECRET_KEY=ci-only-secret
-                    export DB_NAME=test_db
-                    export DB_USER=test_user
-                    export DB_PASSWORD=test_password
-                    export DB_HOST=127.0.0.1
-                    export DB_PORT=5433
-                    export DJANGO_SETTINGS_MODULE=something.settings.development
-
-                    .venv/bin/python manage.py check
-
-                    .venv/bin/python manage.py makemigrations --check --dry-run
+                    docker compose -p something-ci -f docker-compose.ci.yml up -d --wait db
+                    docker compose -p something-ci -f docker-compose.ci.yml run --rm app \
+                        sh -c 'python manage.py check && python manage.py makemigrations --check --dry-run'
                 '''
             }
         }
@@ -69,22 +53,8 @@ pipeline {
         stage('Database Tests') {
             steps {
                 sh '''
-                    docker compose -p something-ci \
-                    -f docker-compose.ci.yml up -d --wait db
-
-                    export SECRET_KEY=ci-only-secret
-                    export DB_NAME=test_db
-                    export DB_USER=test_user
-                    export DB_PASSWORD=test_password
-                    export DB_HOST=127.0.0.1
-                    export DB_PORT=5433
-                    export DJANGO_SETTINGS_MODULE=something.settings.development
-
-                    .venv/bin/python manage.py migrate --noinput
-
-                    .venv/bin/python manage.py migrate --check
-
-                    .venv/bin/python manage.py test --verbosity=2
+                    docker compose -p something-ci -f docker-compose.ci.yml run --rm app \
+                        sh -c 'python manage.py migrate --noinput && python manage.py migrate --check && python manage.py test --verbosity=2'
                 '''
             }
         }
