@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-    PATH+MAC = '/usr/local/bin:/opt/homebrew/bin'
+    PATH = "/usr/local/bin:/opt/homebrew/bin:${env.PATH}"
     }
 
     options {
