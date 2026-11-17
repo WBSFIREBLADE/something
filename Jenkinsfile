@@ -26,7 +26,14 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                checkout scm
+                script {
+                    def checkoutInfo = checkout scm
+                    env.CHECKED_OUT_BRANCH = checkoutInfo.GIT_BRANCH ?: env.BRANCH_NAME ?: ''
+                    env.CHECKED_OUT_COMMIT = checkoutInfo.GIT_COMMIT ?: sh(
+                        returnStdout: true,
+                        script: 'git rev-parse HEAD'
+                    ).trim()
+                }
             }
         }
 
@@ -62,7 +69,7 @@ pipeline {
         stage('Build Image') {
             steps {
                 script {
-                    env.APP_IMAGE = "something:${env.GIT_COMMIT.take(12)}"
+                    env.APP_IMAGE = "something:${env.CHECKED_OUT_COMMIT.take(12)}"
                 }
 
                 sh '''
@@ -75,7 +82,9 @@ pipeline {
         stage('Deploy Main') {
             when {
                 expression {
-                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main'
+                    env.BRANCH_NAME == 'main' ||
+                    env.CHECKED_OUT_BRANCH == 'main' ||
+                    env.CHECKED_OUT_BRANCH == 'origin/main'
                 }
             }
             steps {
