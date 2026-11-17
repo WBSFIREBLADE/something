@@ -17,7 +17,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Checking Python..."
-                    python3.11 --version
+                    python3.12 --version
 
                     echo "Checking Docker..."
                     docker --version
@@ -35,7 +35,7 @@ pipeline {
         stage('Code Quality') {
             steps {
                 sh '''
-                    /opt/homebrew/bin/python3.11 -m venv --clear .venv
+                    python3.12 -m venv --clear .venv
 
                     .venv/bin/python -m pip install --upgrade pip
 
@@ -51,7 +51,7 @@ pipeline {
         stage('Django Validation') {
             steps {
                 sh '''
-                    export DJANGO_SECRET_KEY=ci-only-secret
+                    export SECRET_KEY=ci-only-secret
                     export DB_NAME=test_db
                     export DB_USER=test_user
                     export DB_PASSWORD=test_password
@@ -72,7 +72,7 @@ pipeline {
                     docker compose -p something-ci \
                     -f docker-compose.ci.yml up -d --wait db
 
-                    export DJANGO_SECRET_KEY=ci-only-secret
+                    export SECRET_KEY=ci-only-secret
                     export DB_NAME=test_db
                     export DB_USER=test_user
                     export DB_PASSWORD=test_password
@@ -99,6 +99,17 @@ pipeline {
                     docker build --tag "$APP_IMAGE" .
                     docker images "$APP_IMAGE"
                 '''
+            }
+        }
+
+        stage('Deploy Main') {
+            when {
+                expression {
+                    env.BRANCH_NAME == 'main' || env.GIT_BRANCH == 'origin/main'
+                }
+            }
+            steps {
+                sh 'docker compose -f dockercompose.yaml up -d --no-build --remove-orphans'
             }
         }
     }
