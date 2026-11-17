@@ -35,7 +35,7 @@ pipeline {
         stage('Code Quality') {
             steps {
                 sh '''
-                    /opt/homebrew/bin/python3.11 -m venv .venv
+                    /opt/homebrew/bin/python3.11 -m venv --clear .venv
 
                     .venv/bin/python -m pip install --upgrade pip
 
