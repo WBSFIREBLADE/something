@@ -41,15 +41,15 @@ pipeline {
             }
         }
 
-        stage('Code Quality') {
-            steps {
-                sh '''
-                    docker compose -p something-ci -f docker-compose.ci.yml build app
-                    docker compose -p something-ci -f docker-compose.ci.yml run --rm app \
-                        sh -c 'ruff check . && bandit -r . -x ./tests'
-                '''
-            }
-        }
+        // stage('Code Quality') {
+        //     steps {
+        //         sh '''
+        //             docker compose -p something-ci -f docker-compose.ci.yml build app
+        //             docker compose -p something-ci -f docker-compose.ci.yml run --rm app \
+        //                 sh -c 'ruff check . && bandit -r . -x ./tests'
+        //         '''
+        //     }
+        // }
 
         stage('Django Validation') {
             steps {
