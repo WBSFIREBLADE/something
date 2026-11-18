@@ -4,7 +4,7 @@ services:
     image: ${APP_IMAGE:-something:latest}
     restart: on-failure
     env_file:
-      - .env
+      - ${DEPLOY_ENV_FILE:-.env}
     environment:
       DB_HOST: db
       DB_PORT: "5432"
@@ -18,7 +18,7 @@ services:
     image: postgres:16-alpine
     restart: on-failure
     env_file:
-      - .env
+      - ${DEPLOY_ENV_FILE:-.env}
     environment:
       POSTGRES_DB: ${DB_NAME}
       POSTGRES_USER: ${DB_USER}

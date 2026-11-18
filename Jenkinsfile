@@ -88,7 +88,9 @@ pipeline {
                 }
             }
             steps {
-                sh 'docker compose -f dockercompose.yaml up -d --no-build --remove-orphans'
+                withCredentials([file(credentialsId: 'django-production-env', variable: 'DEPLOY_ENV_FILE')]) {
+                    sh 'docker compose --env-file "$DEPLOY_ENV_FILE" -f dockercompose.yaml up -d --no-build --remove-orphans'
+                }
             }
         }
     }
