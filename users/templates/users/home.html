@@ -1,0 +1,26 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#11131c">
+    <title>Your space · Something</title>
+    <link rel="stylesheet" href="{% static 'users/css/auth.css' %}">
+</head>
+<body class="auth-page">
+    <main class="welcome-card">
+        <a class="brand" href="{% url 'home' %}">
+            <span class="brand-mark">S</span>
+            <span>something<span class="brand-period">.</span></span>
+        </a>
+        <p class="eyebrow">YOU’RE SIGNED IN</p>
+        <h1>Welcome, <span>{{ user.username }}.</span></h1>
+        <p class="form-subtitle">Your space is ready when you are.</p>
+        <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button class="primary-button" type="submit">Sign out <span aria-hidden="true">↗</span></button>
+        </form>
+    </main>
+</body>
+</html>
