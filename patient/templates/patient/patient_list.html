@@ -1,0 +1,99 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f8">
+    <title>Patients · Careline</title>
+    <link rel="stylesheet" href="{% static 'patient/css/patient_list.css' %}">
+</head>
+<body>
+    <main class="page-shell">
+        <header class="topbar">
+            <a class="brand" href="{% url 'home' %}" aria-label="Careline home">
+                <span class="brand-mark" aria-hidden="true">+</span>
+                <span>careline</span>
+            </a>
+            <div class="topbar-right">
+                <span class="staff-chip"><span class="status-dot"></span> Staff directory</span>
+                <span class="user-chip">{{ request.user.username|default:request.user.email }}</span>
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button class="signout-button" type="submit">Sign out</button>
+                </form>
+            </div>
+        </header>
+
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow">PATIENT MANAGEMENT</p>
+                <h1>All patients<span>.</span></h1>
+                <p class="subtitle">A clear view of the people in your care.</p>
+            </div>
+            <div class="patient-count" aria-label="{{ patients|length }} patients">
+                <span class="count-number">{{ patients|length }}</span>
+                <span class="count-label">patient{{ patients|length|pluralize }}</span>
+            </div>
+        </section>
+
+        <section class="directory-card" aria-labelledby="directory-title">
+            <div class="directory-heading">
+                <div>
+                    <h2 id="directory-title">Patient directory</h2>
+                    <p>Personal details and contact information</p>
+                </div>
+                <span class="updated-label">Updated just now</span>
+            </div>
+
+            {% if patients %}
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">Patient</th>
+                                <th scope="col">Date of birth</th>
+                                <th scope="col">Gender</th>
+                                <th scope="col">Blood group</th>
+                                <th scope="col">Phone</th>
+                                <th scope="col">Address</th>
+                                <th scope="col">Emergency contact</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for patient in patients %}
+                                <tr>
+                                    <td>
+                                        <div class="patient-cell">
+                                            <span class="avatar" aria-hidden="true">{{ patient.user.username|first|upper }}</span>
+                                            <span class="patient-name">{{ patient.user.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ patient.date_of_birth|date:"M j, Y"|default:"—" }}</td>
+                                    <td>{{ patient.get_gender_display|default:"—" }}</td>
+                                    <td>
+                                        {% if patient.blood_group %}<span class="blood-badge">{{ patient.get_blood_group_display }}</span>{% else %}—{% endif %}
+                                    </td>
+                                    <td>{{ patient.phone_number|default:"—" }}</td>
+                                    <td class="address-cell">
+                                        {{ patient.address|default:"—" }}{% if patient.zip_code %}<span class="zip-code">{{ patient.zip_code }}</span>{% endif %}
+                                    </td>
+                                    <td>{{ patient.emergency_contact|default:"—" }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <span class="empty-icon" aria-hidden="true">＋</span>
+                    <h3>No patient profiles yet</h3>
+                    <p>When patient profiles are created, they’ll appear here.</p>
+                </div>
+            {% endif %}
+        </section>
+
+        <footer class="page-footer">Patient information is available to authorized staff only.</footer>
+    </main>
+</body>
+</html>

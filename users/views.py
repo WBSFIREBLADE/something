@@ -35,7 +35,7 @@ def login_view(request):
             )
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                return redirect('patient_list_create')
             form.add_error(None, 'That email and password combination was not recognized.')
     else:
         form = CustomUserLoginForm()
