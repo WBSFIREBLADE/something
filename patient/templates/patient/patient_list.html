@@ -92,6 +92,9 @@
                 </div>
             {% endif %}
         </section>
+        {% if not has_patient_profile %}
+            <a class="add-patient-button" href="{% url 'patient_create' %}">Create my patient profile <span aria-hidden="true">↗</span></a>
+        {% endif %}
 
         <footer class="page-footer">Patient information is available to authorized staff only.</footer>
     </main>

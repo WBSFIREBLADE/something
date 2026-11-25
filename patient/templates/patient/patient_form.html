@@ -1,0 +1,68 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f4f6f8">
+    <title>Create patient profile · Careline</title>
+    <link rel="stylesheet" href="{% static 'patient/css/patient_form.css' %}">
+</head>
+<body>
+    <main class="form-page">
+        <header class="topbar">
+            <a class="brand" href="{% url 'home' %}">
+                <span class="brand-mark" aria-hidden="true">+</span>
+                <span>careline</span>
+            </a>
+            {% if request.user.is_staff %}
+                <a class="back-link" href="{% url 'patient_list_create' %}">← Back to patients</a>
+            {% endif %}
+        </header>
+
+        <section class="form-card">
+            <div class="form-heading">
+                <span class="heading-icon" aria-hidden="true">＋</span>
+                <p class="eyebrow">PATIENT DETAILS</p>
+                <h1>Create your<br>patient profile<span>.</span></h1>
+                <p class="subtitle">This profile will be linked to your signed-in account, <strong>{{ request.user.username }}</strong>.</p>
+            </div>
+
+            {% if profile_exists %}
+                <div class="notice" role="status">
+                    <strong>A profile already exists for your account.</strong>
+                    <span>Each account can have one patient profile.</span>
+                </div>
+            {% else %}
+                <form method="post" class="patient-form">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                        <div class="form-error-summary" role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <div class="fields-grid">
+                        {% for field in form %}
+                            <div class="field{% if field.name == 'address' %} field-wide{% endif %}{% if field.errors %} has-error{% endif %}">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                                {{ field }}
+                                {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="save-button" type="submit">Save patient profile <span aria-hidden="true">↗</span></button>
+                        {% if request.user.is_staff %}
+                            <a class="cancel-link" href="{% url 'patient_list_create' %}">Cancel</a>
+                        {% else %}
+                            <a class="cancel-link" href="{% url 'home' %}">Cancel</a>
+                        {% endif %}
+                    </div>
+                </form>
+            {% endif %}
+        </section>
+
+        <p class="privacy-note">Patient details are only visible to authorized staff.</p>
+    </main>
+</body>
+</html>
