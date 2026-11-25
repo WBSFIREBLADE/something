@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#f4f6f8">
-    <title>Create patient profile · Careline</title>
+    <title>Add patient · Careline</title>
     <link rel="stylesheet" href="{% static 'patient/css/patient_form.css' %}">
 </head>
 <body>
@@ -24,14 +24,24 @@
             <div class="form-heading">
                 <span class="heading-icon" aria-hidden="true">＋</span>
                 <p class="eyebrow">PATIENT DETAILS</p>
-                <h1>Create your<br>patient profile<span>.</span></h1>
-                <p class="subtitle">This profile will be linked to your signed-in account, <strong>{{ request.user.username }}</strong>.</p>
+                {% if request.user.is_staff %}
+                    <h1>Add a patient<br>profile<span>.</span></h1>
+                    <p class="subtitle">Choose the patient’s account and add their details.</p>
+                {% else %}
+                    <h1>Create your<br>patient profile<span>.</span></h1>
+                    <p class="subtitle">This profile will be linked to your signed-in account, <strong>{{ request.user.username }}</strong>.</p>
+                {% endif %}
             </div>
 
             {% if profile_exists %}
                 <div class="notice" role="status">
                     <strong>A profile already exists for your account.</strong>
                     <span>Each account can have one patient profile.</span>
+                </div>
+            {% elif request.user.is_staff and not has_available_accounts %}
+                <div class="notice" role="status">
+                    <strong>No eligible accounts are available.</strong>
+                    <span>Each account can only be linked to one patient profile. Create a user account first.</span>
                 </div>
             {% else %}
                 <form method="post" class="patient-form">

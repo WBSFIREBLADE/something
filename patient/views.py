@@ -26,9 +26,6 @@ def patient_list_create(request):
         'patient/patient_list.html',
         {
             'patients': patients,
-            'has_patient_profile': Patient.objects.filter(
-                user=request.user
-            ).exists(),
         },
     )
 
@@ -36,21 +33,38 @@ def patient_list_create(request):
 @login_required
 @require_http_methods(['GET', 'POST'])
 def patient_create(request):
-    profile_exists = Patient.objects.filter(user=request.user).exists()
-    form = PatientForm(request.POST or None)
+    is_staff = request.user.is_staff
+    profile_exists = (
+        not is_staff
+        and Patient.objects.filter(user=request.user).exists()
+    )
+    form = PatientForm(
+        request.POST if request.method == 'POST' else None,
+        account_user=request.user,
+    )
+    has_available_accounts = (
+        form.fields['user'].queryset.exists()
+        if is_staff
+        else True
+    )
 
     if request.method == 'POST' and not profile_exists and form.is_valid():
         patient = form.save(commit=False)
-        patient.user = request.user
+        if not is_staff:
+            patient.user = request.user
         patient.save()
-        if request.user.is_staff:
+        if is_staff:
             return redirect('patient_list_create')
         return redirect('home')
 
     return render(
         request,
         'patient/patient_form.html',
-        {'form': form, 'profile_exists': profile_exists},
+        {
+            'form': form,
+            'profile_exists': profile_exists,
+            'has_available_accounts': has_available_accounts,
+        },
     )
 
 
@@ -65,6 +79,7 @@ def patient_detail(request, pk):
         return JsonResponse({
             'id': patient.id,
             'username': patient.user.username,
+            'patient_name': patient.patient_name,
             'date_of_birth': patient.date_of_birth,
             'gender': patient.gender,
             'blood_group': patient.blood_group,
